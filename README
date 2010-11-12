@@ -1,0 +1,3 @@
+an attempt at incremental backup utility for Mac
+- perform incremental backups of the system to the external drive
+- keep the last backup in / of the drive to have a bootable system
