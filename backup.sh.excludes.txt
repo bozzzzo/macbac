@@ -12,3 +12,6 @@
 /Previous Systems.localized
 .Spotlight-*/
 /.DS_Store
+/.fseventd
+/.Trashes
+/.Spotlight-V100

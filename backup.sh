@@ -20,7 +20,7 @@ test -d "${BACKUP_ROOT}" || {
 test -d "${BACKUP_DIR}" || mkdir "${BACKUP_DIR}"
 
 
-rsync -X --archive --one-file-system --hard-links \
+/opt/local/bin/rsync "$@" -X --archive --one-file-system --hard-links \
   --human-readable --inplace --numeric-ids --delete \
   --delete-excluded --exclude-from="${0}.excludes.txt" \
   --link-dest="${BACKUP_ROOT}" \
@@ -37,14 +37,15 @@ if [ -a "${CURRENT}" ]; then
 fi
 
 function content() {
-	find "$1" ! -name '.Trashes' ! -name '.DS_Store' ! -name '.Spotlight-*' -maxdepth 1 -depth 1
+	dir="$1"; shift;
+	find "$dir" ! -name '.Trashes' ! -name '.DS_Store' ! -name '.Spotlight-*' ! -name '.fseventd' -maxdepth 1 -depth 1 "$@"
 }
 
 if [ -h "${CURRENT}" ]; then
 	current="${BACKUP_DIR}/$(basename "$(readlink "${CURRENT}")")"
 	mkdir "$current" || exit 1
 	rm "${CURRENT}"
-        mv $(content "${BACKUP_ROOT}" | grep -v "${BACKUP_DIR}") "$current"
+        content "${BACKUP_ROOT}" -print0 | grep -zv "${BACKUP_DIR}") | xargs -0 -J %% mv %% "$current"
         if [ "$(content "${BACKUP_ROOT}" )" != "${BACKUP_DIR}" ]; then
 		echo "Failed to properly move old backup from ${BACKUP_ROOT} to $current"
 		exit 1
@@ -58,7 +59,7 @@ fi
 STAMP="backup-$(date +%F.%T | tr : -)"
 ln -sf "${STAMP}" "${CURRENT}"
 ln -sf "${STAMP}.log" "${CURRENT}.log"
-mv $(content "${BACKUP_DEST}") "${BACKUP_ROOT}"
+content "${BACKUP_DEST}" -print0 | xargs -0 -J %% mv %% "${BACKUP_ROOT}"
 mv "${BACKUP_DEST}.log" "${BACKUP_DIR}/${STAMP}.log"
 rmdir -p "${BACKUP_DEST}"
 
