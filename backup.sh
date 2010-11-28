@@ -20,12 +20,14 @@ test -d "${BACKUP_ROOT}" || {
 test -d "${BACKUP_DIR}" || mkdir "${BACKUP_DIR}"
 
 
+if true; then
 /opt/local/bin/rsync "$@" -X --archive --one-file-system --hard-links \
   --human-readable --inplace --numeric-ids --delete \
   --delete-excluded --exclude-from="${0}.excludes.txt" \
   --link-dest="${BACKUP_ROOT}" \
   --log-file="${BACKUP_DEST}.log" \
   / "${BACKUP_DEST}/" || exit $?
+fi
 
 
 #
@@ -45,7 +47,7 @@ if [ -h "${CURRENT}" ]; then
 	current="${BACKUP_DIR}/$(basename "$(readlink "${CURRENT}")")"
 	mkdir "$current" || exit 1
 	rm "${CURRENT}"
-        content "${BACKUP_ROOT}" -print0 | grep -zv "${BACKUP_DIR}") | xargs -0 -J %% mv %% "$current"
+        content "${BACKUP_ROOT}" -print0 | grep -zv "${BACKUP_DIR}" | xargs -0 -J %% mv %% "$current"
         if [ "$(content "${BACKUP_ROOT}" )" != "${BACKUP_DIR}" ]; then
 		echo "Failed to properly move old backup from ${BACKUP_ROOT} to $current"
 		exit 1
